@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Arrays;
 
 public class ServerUserThread implements Runnable {
+
     private final Socket clientDialog;
 
     public ServerUserThread(Socket client) {

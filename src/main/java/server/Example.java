@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Example {
 
+
     public static void main(String[] args) {
         try (var serverSocket = new ServerSocket(8080)) {
             System.out.println("Server started!");
