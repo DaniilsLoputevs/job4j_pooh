@@ -1,4 +1,4 @@
-package models;
+package models.old;
 
 public class User {
     private final String name;

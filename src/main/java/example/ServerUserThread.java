@@ -1,8 +1,9 @@
 package example;
 
+import general.IOGeneral;
+
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class ServerUserThread implements Runnable {
 
@@ -21,15 +22,14 @@ public class ServerUserThread implements Runnable {
             // а потом канал чтения, - иначе есть риск блокировки при ожидании заголовка в сокете.
             try (
                     var out = new DataOutputStream(clientDialog.getOutputStream());
-                    // канал чтения из сокета
-                 var in = new DataInputStream(clientDialog.getInputStream());
-//                    var out = new PrintWriter(clientDialog.getOutputStream(), true);
-//                    var in = new BufferedReader(new InputStreamReader(clientDialog.getInputStream()));
+                    var in = new DataInputStream(clientDialog.getInputStream());
                 ) {
 
                 System.out.println("SERVER: DataInputStream created");
+                System.out.println("SERVER: in stream value: " + in);
 
                 System.out.println("SERVER: DataOutputStream  created");
+                System.out.println("SERVER: out stream value: " + out);
                 //////////////////////////////////////////////////////////////////////////////////////////////
                 // основная рабочая часть //
                 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,39 +41,24 @@ public class ServerUserThread implements Runnable {
 
                     // серверная нить ждёт в канале чтения (inputstream) получения
                     // данных клиента после получения данных считывает их
-//                    var entry = Arrays.toString(in.readAllBytes());
-                    var entry = in.readLine();
+
+
+                    var clientRequest = IOGeneral.reedFromInput(in);
 
                     // и выводит в консоль
-                    System.out.println("SERVER: client message: \"" + entry + "\"");
+                    System.out.println("SERVER: client message: \"" + clientRequest + "\"");
 
-                    // инициализация проверки условия продолжения работы с клиентом
-                    // по этому сокету по кодовому слову - quit в любом регистре
-                    if ((entry.equalsIgnoreCase("quit"))) {
-
-                        // если кодовое слово получено то инициализируется закрытие
-                        // серверной нити
-                        System.out.println("Client initialize connections suicide ...");
-                        out.writeUTF("Server reply - " + entry + " - OK");
-//                        out.write("Server reply - " + entry + " - OK");
-                        Thread.sleep(3000);
-                        break;
-                    }
-
-                    // если условие окончания работы не верно - продолжаем работу -
                     // отправляем эхо обратно клиенту
 
                     System.out.println("SERVER: Server try writing to channel");
 
-                    var tempString = "SERVER: Server reply client message: \"" + entry + "\" - OK";
-                    out.writeBytes(tempString);
-//                    out.write(tempString);
-                    System.out.println(tempString);
+                    var tempString = "Server reply client message: \"" + clientRequest + "\" - OK";
+                    IOGeneral.writeToInput(out, tempString);
+                    System.out.println("SERVER: " + tempString);
 
-                    System.out.println("SERVER: Server write reply into ClientSocket");
 
                     // освобождаем буфер сетевых сообщений
-                    out.flush();
+
                     System.out.println("SERVER: Server send reply into ClientSocket");
                     // возвращаемся в начало для считывания нового сообщения
                 }
@@ -95,7 +80,7 @@ public class ServerUserThread implements Runnable {
 
                 System.out.println("SERVER: Closing connections & channels - DONE.");
                 // Auto-generated catch block
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 //        }

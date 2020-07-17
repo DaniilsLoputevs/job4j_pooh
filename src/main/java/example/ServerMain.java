@@ -31,7 +31,7 @@ public class ServerMain {
                 // монопоточную нить = сервер - MonoThreadClientHandler и тот
                 // продолжает общение от лица сервера
                 executeIt.execute(new ServerUserThread(client));
-                System.out.print("SERVER-MAIN: Connection accepted.");
+                System.out.println("SERVER-MAIN: Connection accepted.");
             }
 
             // закрытие пула нитей после завершения работы всех нитей

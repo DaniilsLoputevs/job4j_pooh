@@ -1,9 +1,9 @@
-package server;
+package oldserver;
 
 import cliet.Publisher;
 import cliet.Subscriber;
 import models.Message;
-import models.User;
+import models.old.User;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class ServerTest {
         try {
             serverSocket = new Socket(InetAddress.getByName("127.0.0.1"), 8080);
             publisher = new Publisher(serverSocket);
-            sub = new Subscriber(new User("sub"), serverSocket);
+//            sub = new Subscriber(new User("sub"), serverSocket);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -43,7 +43,7 @@ public class ServerTest {
         });
         serverThread.start();
 
-        publisher.sendMessage(new Message("sub", "queue", "Vsem Privet!!!"));
+//        publisher.sendMessage(new Message("sub", "queue", "Vsem Privet!!!"));
         sub.register();
 
 
