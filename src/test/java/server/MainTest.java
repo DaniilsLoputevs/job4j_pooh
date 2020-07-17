@@ -29,6 +29,11 @@ public class MainTest {
     public void mainTest() {
         var server = new ServerMain();
         server.start();
+
+
+        /* Subscriber Thread */
+
+
         var subscriberThread = new Thread(() -> {
             try(var socket = new Socket("localhost", 8080)) {
                 do {
@@ -54,7 +59,6 @@ public class MainTest {
                     subscriber.waitAndReadResponse(log::add);
 
 
-
                     System.out.println("### Publisher finish ###");
                 } while (!Thread.interrupted());
             } catch (IOException e) {
@@ -62,6 +66,10 @@ public class MainTest {
             }
         }, "subscriber Thread 1");
         subscriberThread.start();
+
+
+        /* Publisher Thread */
+
 
 //        var publisherThread = new Thread(() -> {
 //            try(var socket = new Socket("localhost", 8080)) {
@@ -79,10 +87,12 @@ public class MainTest {
 
 
         threadSleep(3000);
+        /* Log there Subscriber Thread stop */
         System.out.println("\r\n### SPECIAL ###");
         log.forEach(System.out::println);
         System.out.println("### SPECIAL ###\r\n");
 
+        /* Log from Subscriber.class */
         System.out.println("\r\n### SPECIAL ###");
         Subscriber.log.forEach(System.out::println);
         System.out.println("### SPECIAL ###\r\n");
@@ -104,7 +114,7 @@ public class MainTest {
     //### Other thing ###
 
     @Test
-    public void publisherMain() {
+    public void OldTry() {
         var map = new ConcurrentHashMap<String, String>();
 
         Socket publisherSocket = null;

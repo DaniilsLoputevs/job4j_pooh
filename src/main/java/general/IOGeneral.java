@@ -11,8 +11,13 @@ public class IOGeneral {
         byte[] buf = new byte[4096]; // 64 x 64
         int total;
         try {
-
+//                while (in.available() <= 0) {
+//                    System.out.println(Thread.currentThread().getName() + " wait in IOGeneral");
+//                }
+            System.out.println(in.available());
             if ((total = in.read(buf)) > -1) {
+//            if (in.available() > 0) {
+//                    total = in.read(buf);
                 rsl.append(new String(Arrays.copyOfRange(buf, 0, total)));
             }
         } catch (IOException e) {
@@ -23,7 +28,9 @@ public class IOGeneral {
 
     public static String writeToInput(DataOutputStream out, String string) {
         try {
-            out.write(string.getBytes());
+            var temp = string.getBytes();;
+            out.write(temp);
+//            out.write(string.getBytes());
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
