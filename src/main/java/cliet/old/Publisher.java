@@ -45,7 +45,7 @@ public class Publisher {
                 + "Content-Type: text/html\r\n"
                 + "Content-Length: " + message.getBody().length() + "\r\n"
                 + "body: message in JSON format:\r\n"
-                + message.toString();
+                + message.toStringHttp();
 //                + "Connection: close\r\n\r\n";
         output.println(temp);
         output.flush();

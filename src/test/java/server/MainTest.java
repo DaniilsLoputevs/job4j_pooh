@@ -1,6 +1,5 @@
 package server;
 
-//import additional.IOHelper;
 import cliet.Publisher;
 import cliet.Subscriber;
 import models.Message;
@@ -19,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 //TODO LOG in code with Thread's name.
 public class MainTest {
     private static final List<String> log = new ArrayList<>();
+    private static final List<String> logPub = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
@@ -32,38 +32,23 @@ public class MainTest {
 
 
         /* Subscriber Thread */
-
-
         var subscriberThread = new Thread(() -> {
-            try(var socket = new Socket("localhost", 8080)) {
-                do {
-//                    System.out.println();
-                    log.add("String 1");
-                    var subscriber = new Subscriber("subscriber",socket);
-//                    System.out.println("String 2");
-                    log.add("String 2");
-                    subscriber.register();
-//                    System.out.println("String 3");
-                    log.add("String 3");
+            log.add("String 1");
+            var subscriber = new Subscriber("subscriber");
 
-                    threadSleep(1000);
-//                    System.out.println("String 4");
-                    log.add("String 4");
+            log.add("String 2");
+            subscriber.register();
 
-                    System.out.println("Thread Sub - await and read");
-//                    var check =
-                    subscriber.waitAndReadResponse(log::add);
-//                    System.out.println("response status: " + check);
-                    subscriber.waitAndReadResponse(log::add);
-                    subscriber.waitAndReadResponse(log::add);
-                    subscriber.waitAndReadResponse(log::add);
+            log.add("String 3");
+            threadSleep(2000);
 
+            log.add("String 4");
+            System.out.println("Thread Sub - await and read");
+            log.add("Next String is msg from server:");
+            subscriber.checkUnreadMsg(log::add);
+            log.add("Sub accepted msg!");
 
-                    System.out.println("### Publisher finish ###");
-                } while (!Thread.interrupted());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            System.out.println("### Subscriber finish ###");
         }, "subscriber Thread 1");
         subscriberThread.start();
 
@@ -71,35 +56,49 @@ public class MainTest {
         /* Publisher Thread */
 
 
-//        var publisherThread = new Thread(() -> {
-//            try(var socket = new Socket("localhost", 8080)) {
-//                var publisher = new Publisher(socket);
-//                var temp = publisher.sendMessage(
-//                        new Message("TOPIC", "bodyTest"));
-//                System.out.println(temp);
-//                System.out.println("### Publisher finish ###");
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }, "Publisher Thread 1");
-//        publisherThread.start();
+        var publisherThread = new Thread(() -> {
+            threadSleep(100);
+            var publisher = new Publisher();
+            var msg = new Message("TOPIC", "bodyTest");
+            publisher.postMessage(msg);
+
+            logPub.add("pub add msg");
+            logPub.add("msg content: \r\n" + msg.toStringHttp());
+
+            System.out.println("### Publisher finish ###");
+        }, "Publisher Thread 1");
+        publisherThread.start();
 
 
         threadSleep(3000);
         /* Log there Subscriber Thread stop */
-        System.out.println("\r\n### SPECIAL ###");
+        System.out.println("\r\n### Subscriber Log ###");
         log.forEach(System.out::println);
-        System.out.println("### SPECIAL ###\r\n");
+        System.out.println("### Subscriber Log ###\r\n");
 
-        /* Log from Subscriber.class */
-        System.out.println("\r\n### SPECIAL ###");
-        Subscriber.log.forEach(System.out::println);
-        System.out.println("### SPECIAL ###\r\n");
+//        /* Log from Subscriber.class */
+//        System.out.println("\r\n### SPECIAL ###");
+//        Subscriber.log.forEach(System.out::println);
+//        System.out.println("### SPECIAL ###\r\n");
+
+//        /* Log from Publisher.class */
+//        System.out.println("\r\n### SPECIAL ###");
+//        Publisher.log.forEach(System.out::println);
+//        System.out.println("### SPECIAL ###\r\n");
+
+        /* Log there Publisher Thread stop */
+//        System.out.println("\r\n### Publisher Log ###");
+//        logPub.forEach(System.out::println);
+//        System.out.println("### Publisher Log ###\r\n");
         threadSleep(100000);
 
     }
 
+    /**
+     * just less code for this simple action.
+     *
+     * @param ms milliseconds.
+     */
     public void threadSleep(long ms) {
         try {
             Thread.sleep(ms);
@@ -107,8 +106,6 @@ public class MainTest {
             e.printStackTrace();
         }
     }
-
-
 
 
     //### Other thing ###
@@ -136,8 +133,8 @@ public class MainTest {
         }
 
 
-        var publisher = new Publisher(publisherSocket);
-        publisher.sendMessage(new Message("TopicTest\r\n", "bodyTest\r\n"));
+//        var publisher = new Publisher(publisherSocket);
+//        publisher.sendMessage(new Message("TopicTest\r\n", "bodyTest\r\n"));
 
         System.out.println(map.get("request"));
     }

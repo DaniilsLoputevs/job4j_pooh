@@ -1,93 +1,109 @@
 package cliet;
 
-import cliet.additional.TestHelper;
+import general.Http;
 import general.IOGeneral;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class Subscriber {
     private final String userName;
-    private final Socket socket;
 
-//    private static String logPath = "C:\\Danik\\Projects\\job4j_pooh\\src\\test\\java\\sub_log.txt";
     public static final List<String> log = new ArrayList<>();
 
-    public Subscriber(String userName, Socket socket) {
-        this.userName = userName;
-        this.socket = socket;
+    public Subscriber(String userName) {
+        this.userName = "\"" + userName + "\"";
     }
 
     public boolean register() {
-//        try (var input = new BufferedReader(new InputStreamReader(socket.getInputStream(),
-//                StandardCharsets.UTF_8));
-//             var output = new PrintWriter(socket.getOutputStream())) {
-        try (var out = new DataOutputStream(socket.getOutputStream());
-             var in = new DataInputStream(socket.getInputStream())) {
+        var rsl = false;
+        try (var socket = new Socket("localhost", 8080)) {
+            try (var out = new DataOutputStream(socket.getOutputStream());
+                 var in = new DataInputStream(socket.getInputStream())) {
 
 //            System.out.println("\r\n### SPECIAL ###");
 
-//            sendRequestReg(output);
-            log.add("SUB - write");
-            IOGeneral.writeToInput(out, sendRequestReg());
+                log.add("SUB - write");
+                log.add("SUB - request:");
+                var bodyContent = httpForm(this.userName);
+                var localRequest = Http.makeRequest(Http.STATUS_POST, "REG", bodyContent);
+                log.add(localRequest);
+                log.add("SUB - request finish");
+                IOGeneral.writeToInput(out, localRequest);
 
 //            System.out.println("### SPECIAL ###\r\n");
 
-            log.add("SUB - read");
-//            var response = ClientTalk.receiveResponse(input);
-            var response = IOGeneral.reedFromInput(in);
-            log.add("SUB - read - closed");
+                log.add("SUB - read");
+                var response = IOGeneral.reedFromInput(in);
+                log.add("SUB - read - closed");
 
-            System.out.println("\r\n### SPECIAL ###");
-            System.out.println(ClientTalk.checkResponse(response));
-            System.out.println("### SPECIAL ###\r\n");
+//                System.out.println("\r\n### SPECIAL ###");
+//                System.out.println(Http.checkResponse(response));
+//                System.out.println("### SPECIAL ###\r\n");
 
-            return ClientTalk.checkResponse(response);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
+                rsl = Http.checkResponse(response);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return false;
-    }
-
-    public void waitAndReadResponse(Consumer<String> howToOutput) {
-        try (var input = new BufferedReader(new InputStreamReader(socket.getInputStream(),
-                StandardCharsets.UTF_8))) {
-
-            var response = ClientTalk.receiveResponse(input);
-            howToOutput.accept(response);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        return rsl;
     }
 
     /**
-     * Prepare & send HTTP request for registration on server.
+     * ask server, - do it have any massages for this user.
+     * If it have, server will send it and finally it will be pushed into {@param howToAccept}.
      *
-     * @param output - socket's output.
+     * @param howToAccept -
      */
-//    private void sendRequestReg(PrintWriter output) {
-//        var temp = "HTTP/1.1 200 OK\r\n"
+    public void checkUnreadMsg(Consumer<String> howToAccept) {
+        try (var socket = new Socket("localhost", 8080)) {
+            try (var out = new DataOutputStream(socket.getOutputStream());
+                 var in = new DataInputStream(socket.getInputStream())) {
+
+                var bodyContent = httpForm(this.userName);
+                var localRequest = Http.makeRequest(Http.STATUS_GET, "GET MSG JSON", bodyContent);
+                IOGeneral.writeToInput(out, localRequest);
+
+                var response = IOGeneral.reedFromInput(in);
+                howToAccept.accept(response);
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+//    /**
+//     * Prepare HTTP request before sending on server.
+//     */
+//    private String sendRequest(String httpStatus, String serverCommand, String bodyContent) {
+//        return httpStatus + "/HTTP/1.1 200 OK\r\n"
 //                + "server.Server: job4j/2020-07-12\r\n"
 //                + "Content-Type: text/html\r\n"
-//                + "Content-Length: " + this.userName.length() + "\r\n"
-//                + "body: REG\r\n"
-//                + this.userName;
-//        output.println(temp);
-//        output.flush();
+//                + "Content-Length: " + bodyContent.length() + "\r\n"
+//                + "body: " + serverCommand + "\r\n"
+//                + '{' + "\r\n"
+//                + "\"user\" : " + bodyContent + "\r\n"
+//                + "\"msgType\" : " + "\"all\"" + "\r\n"
+//                + '}' + "\r\n"
+//                + "\r\n";
 //    }
-    private String sendRequestReg() {
-        return "HTTP/1.1 200 OK\r\n"
-                + "server.Server: job4j/2020-07-12\r\n"
-                + "Content-Type: text/html\r\n"
-                + "Content-Length: " + this.userName.length() + "\r\n"
-                + "body: REG\r\n"
-                + this.userName;
+
+    private String httpForm(String userName) {
+        return '{' + Http.HTTP_LS
+                + "\"user\" : " + this.userName + Http.HTTP_LS
+                + "\"msgType\" : " + "\"all\"" + Http.HTTP_LS
+                + '}' + Http.HTTP_LS
+                + Http.HTTP_LS;
     }
 
 }

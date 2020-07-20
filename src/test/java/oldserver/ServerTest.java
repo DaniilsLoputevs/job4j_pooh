@@ -24,7 +24,7 @@ public class ServerTest {
     public void setUp() throws Exception {
         try {
             serverSocket = new Socket(InetAddress.getByName("127.0.0.1"), 8080);
-            publisher = new Publisher(serverSocket);
+//            publisher = new Publisher(serverSocket);
 //            sub = new Subscriber(new User("sub"), serverSocket);
         } catch (IOException e) {
             e.printStackTrace();

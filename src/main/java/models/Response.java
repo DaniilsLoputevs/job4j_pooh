@@ -15,7 +15,8 @@ public class Response {
         return HTTP
                 + "Content-Length: " + message.getBody().length() + "\r\n"
                 + "body: JSON\r\n"
-                + message.toString();
+                + message.toStringHttp()
+                + "\r\n";
     }
 
 }

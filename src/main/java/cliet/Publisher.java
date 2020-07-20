@@ -1,52 +1,54 @@
 package cliet;
 
+import general.Http;
+import general.IOGeneral;
 import models.Message;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Publisher {
-    private final Socket connection;
+    public static final List<String> log = new ArrayList<>();
 
-    public Publisher(Socket connection) {
-        this.connection = connection;
-    }
+    public boolean postMessage(Message message) {
+        try (var socket = new Socket("localhost", 8080)) {
+            try (var out = new DataOutputStream(socket.getOutputStream());
+                 var in = new DataInputStream(socket.getInputStream())) {
 
-    public boolean sendMessage(Message message) {
-        try (var input = new BufferedReader(new InputStreamReader(connection.getInputStream(),
-                StandardCharsets.UTF_8));
-             var output = new PrintWriter(connection.getOutputStream())) {
+                log.add("PUB - write");
+                log.add("PUB - request:");
+                var local = Http.makeRequest(Http.STATUS_POST, "ADD MSG JSON", message.toStringHttp());
+                log.add(local);
+                log.add("PUB - request finish");
 
-            sendRequestPost(output, message);
-            var response = ClientTalk.receiveResponse(input);
-            return ClientTalk.checkResponse(response);
+                IOGeneral.writeToInput(out, local);
+                var response = IOGeneral.reedFromInput(in);
+                return Http.checkResponse(response);
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Prepare & send HTTP request(post) to server.
-     *
-     * @param output  -
-     * @param message -
-     */
-    private void sendRequestPost(PrintWriter output, Message message) {
-        var temp = "POST/HTTP/1.1 200 OK\r\n"
-                + "server.Server: job4j/2020-07-12\r\n"
-                + "Content-Type: text/html\r\n"
-                + "Content-Length: " + message.getBody().length() + "\r\n"
-                + "body: JSON\r\n"
-                + message.toString();
-//                + "Connection: close\r\n\r\n";
-        output.println(temp);
-        output.flush();
-    }
+//    /**
+//     * Prepare & send HTTP request(post) to server.
+//     *
+//     * @param message -
+//     */
+//    private String sendRequestPost(Message message) {
+//        return  "POST/HTTP/1.1 200 OK\r\n"
+//                + "server.Server: job4j/2020-07-12\r\n"
+//                + "Content-Type: text/html\r\n"
+//                + "Content-Length: " + message.getBody().length() + "\r\n"
+//                + "body: ADD MSG JSON\r\n"
+//                + message.toStringHttp() + "\r\n"
+//                + "\r\n";
+//    }
 
 }

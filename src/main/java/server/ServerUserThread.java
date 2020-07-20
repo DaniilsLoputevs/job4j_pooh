@@ -17,11 +17,6 @@ public class ServerUserThread extends Thread {
     private final Socket clientDialog;
     private final MessageBroker broker;
     private final AtomicInteger subscribersAtomicCount ;
-    /**
-     * var == null >>> Thread work with Publisher.
-     * var != null >>> Thread work with Subscriber.
-     */
-    private String threadUserName = null;
 
     public ServerUserThread(Socket client, MessageBroker broker, AtomicInteger subscribersAtomicCount) {
         this.clientDialog = client;
@@ -39,38 +34,45 @@ public class ServerUserThread extends Thread {
             //////////////////////////////////////////////////////////////////////////////////////////////
 
 
-            while (clientDialog.isConnected()) {
+            if (clientDialog.isConnected()) {
                 System.out.println(getName() + ": SERVER: Server reading from channel");
 
-                var stringHttpRequest = IOGeneral.reedFromInput(in);
-                var request = Request.httpToRequest(stringHttpRequest);
+                Request request = Request.ofDataInputStream(in);
 
-                System.out.println(getName() + ": SERVER: accept message: \r\n" + stringHttpRequest + "");
+//                System.out.println("\r\n### LOOK ###");
+//                System.out.println("req.status: " + request.getStatus() + "END");
+//                System.out.println("req.http: " + request.getFullHttp() + "END");
+//                System.out.println("req.body: " + request.getBody() + "END");
+//                System.out.println("### LOOK ###\r\n");
 
-                if ((request.getStatus().contains("POST"))) {
+//                System.out.println(getName() + ": SERVER: accept message: \r\n" + stringHttpRequest + "");
 
-                    if ((request.getBody().contains("JSON"))) {
-                        var tempMessage = Message.requestBodyToMessage(request.getBody());
-                        broker.addMessage(tempMessage);
+                new ServerLogic().processing(broker, request, out);
 
-                    } else if ((request.getBody().contains("REG"))) {
-                        this.threadUserName = ServerCodeTools.parseRequestReg(request.getBody());
-                        this.subscribersAtomicCount.incrementAndGet();
-                        super.setName("THREAD-SUB-" + this.threadUserName);
-                        broker.registerQueue(threadUserName);
-
-                        IOGeneral.writeToInput(out, Response.HTTP + "REG");
-                        System.out.println("User was registered: " + this.threadUserName);
-                    }
-                }
+//                if ((request.getStatus().contains("POST"))) {
+//
+//                    if ((request.getBody().contains("JSON"))) {
+//                        var tempMessage = Message.requestBodyToMessage(request.getBody());
+//                        broker.addMessage(tempMessage);
+//
+//                    } else if ((request.getBody().contains("REG"))) {
+//                        this.threadUserName = ServerCodeTools.parseRequestReg(request.getBody());
+//                        this.subscribersAtomicCount.incrementAndGet();
+//                        super.setName("THREAD-SUB-" + this.threadUserName);
+//                        broker.registerQueue(threadUserName);
+//
+//                        IOGeneral.writeToInput(out, Response.HTTP + "REG");
+//                        System.out.println("User was registered: " + this.threadUserName);
+//                    }
+//                }
 
 //                var tempString = "SERVER: Server reply client message: \"" + stringHttpRequest + "\"";
 
-                if (threadUserName != null) {
-                    var responseList = new ArrayList<Response>();
-                    broker.setAllPublicMessages(responseList, threadUserName, subscribersAtomicCount);
-                    ServerCodeTools.sendAllResponse(out, responseList);
-                }
+//                if (threadUserName != null) {
+//                    var responseList = new ArrayList<Response>();
+//                    broker.setAllPublicMessages(responseList, threadUserName, subscribersAtomicCount);
+//                    ServerCodeTools.sendAllResponse(out, responseList);
+//                }
 
 //                System.out.println(getName() + "SERVER: Server sent message");
             }
@@ -80,15 +82,11 @@ public class ServerUserThread extends Thread {
             //////////////////////////////////////////////////////////////////////////////////////////////
 
             // если условие выхода - верно выключаем соединения
-            System.out.println(getName() + ": SERVER: Client disconnected");
-            System.out.println(getName() + ": SERVER: Closing connections & channels.");
+            System.out.println(getName() + ": SERVER: Client disconnected - close connections.");
 
-            // закрываем сначала каналы сокета !
-            in.close();
-            out.close();
-            clientDialog.close();
-
-            System.out.println(getName() + ": SERVER: Closing connections & channels - DONE.");
+//            in.close();
+//            out.close();
+//            clientDialog.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
