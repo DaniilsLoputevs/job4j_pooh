@@ -1,7 +1,6 @@
 package server;
 
 import general.IOGeneral;
-import oldserver.Server;
 import org.junit.Test;
 
 import java.io.DataInputStream;
@@ -11,11 +10,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TryStand {
-
 
 
     @Test
@@ -137,7 +134,6 @@ public class TryStand {
 
 
                 threadSleep(2000);
-
 
 
             } catch (IOException e) {

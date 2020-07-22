@@ -11,7 +11,8 @@ public class IOGeneral {
         byte[] buf = new byte[4096]; // 64 x 64
         int total;
         try {
-            if ((total = in.read(buf)) > -1) {
+            total = in.read(buf);
+            if (total > -1) {
                 rsl.append(new String(Arrays.copyOfRange(buf, 0, total)));
             }
         } catch (IOException e) {

@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 public class Subscriber {
     private final String userName;
 
-    public static final List<String> log = new ArrayList<>();
+    public static final List<String> SIMPLE_LOG = new ArrayList<>();
 
     public Subscriber(String userName) {
         this.userName = "\"" + userName + "\"";
@@ -26,27 +26,18 @@ public class Subscriber {
             try (var out = new DataOutputStream(socket.getOutputStream());
                  var in = new DataInputStream(socket.getInputStream())) {
 
-//            System.out.println("\r\n### SPECIAL ###");
-
-                log.add("SUB - write");
-                log.add("SUB - request:");
-                var bodyContent = httpForm(this.userName);
+                var bodyContent = toHttpFormat();
                 var localRequest = Http.makeRequest(Http.STATUS_POST, "REG", bodyContent);
-                log.add(localRequest);
-                log.add("SUB - request finish");
+
+                SIMPLE_LOG.add(localRequest);
+                SIMPLE_LOG.add("SUB - request finish");
                 IOGeneral.writeToInput(out, localRequest);
 
-//            System.out.println("### SPECIAL ###\r\n");
-
-                log.add("SUB - read");
+                SIMPLE_LOG.add("SUB - read");
                 var response = IOGeneral.reedFromInput(in);
-                log.add("SUB - read - closed");
+                SIMPLE_LOG.add("SUB - read - closed");
 
-//                System.out.println("\r\n### SPECIAL ###");
-//                System.out.println(Http.checkResponse(response));
-//                System.out.println("### SPECIAL ###\r\n");
-
-                rsl = Http.checkResponse(response);
+                rsl = Http.checkHttpResponseOk(response);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -67,7 +58,7 @@ public class Subscriber {
             try (var out = new DataOutputStream(socket.getOutputStream());
                  var in = new DataInputStream(socket.getInputStream())) {
 
-                var bodyContent = httpForm(this.userName);
+                var bodyContent = toHttpFormat();
                 var localRequest = Http.makeRequest(Http.STATUS_GET, "GET MSG JSON", bodyContent);
                 IOGeneral.writeToInput(out, localRequest);
 
@@ -82,23 +73,7 @@ public class Subscriber {
         }
     }
 
-//    /**
-//     * Prepare HTTP request before sending on server.
-//     */
-//    private String sendRequest(String httpStatus, String serverCommand, String bodyContent) {
-//        return httpStatus + "/HTTP/1.1 200 OK\r\n"
-//                + "server.Server: job4j/2020-07-12\r\n"
-//                + "Content-Type: text/html\r\n"
-//                + "Content-Length: " + bodyContent.length() + "\r\n"
-//                + "body: " + serverCommand + "\r\n"
-//                + '{' + "\r\n"
-//                + "\"user\" : " + bodyContent + "\r\n"
-//                + "\"msgType\" : " + "\"all\"" + "\r\n"
-//                + '}' + "\r\n"
-//                + "\r\n";
-//    }
-
-    private String httpForm(String userName) {
+    private String toHttpFormat() {
         return '{' + Http.HTTP_LS
                 + "\"user\" : " + this.userName + Http.HTTP_LS
                 + "\"msgType\" : " + "\"all\"" + Http.HTTP_LS

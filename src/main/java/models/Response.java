@@ -1,9 +1,8 @@
 package models;
 
+import general.Http;
+
 public class Response {
-    public static final String HTTP = "POST/HTTP/1.1 200 OK\r\n"
-            + "server.Server: job4j/2020-07-12\r\n"
-            + "Content-Type: text/html\r\n";
     private final Message message;
 
     public Response(Message message) {
@@ -12,11 +11,10 @@ public class Response {
 
     @Override
     public String toString() {
-        return HTTP
-                + "Content-Length: " + message.getBody().length() + "\r\n"
-                + "body: JSON\r\n"
-                + message.toStringHttp()
-                + "\r\n";
+        return Http.STATUS_POST + Http.HTTP_DEFAULT_TEMPLATE
+                + "Content-Length: " + message.getBody().length() + Http.HTTP_LS
+                + "body: JSON" + Http.HTTP_LS
+                + message.toStringHttp();
     }
 
 }

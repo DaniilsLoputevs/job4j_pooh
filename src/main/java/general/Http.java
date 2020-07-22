@@ -8,6 +8,14 @@ public class Http {
     public static final String STATUS_POST = "POST/";
     public static final String STATUS_GET = "GET/";
 
+    /* Default HTTP Templates */
+    public static final String HTTP_DEFAULT_TEMPLATE = "HTTP/1.1 200 OK" + Http.HTTP_LS
+            + "server.Server: job4j/2020-07-12" + Http.HTTP_LS
+            + "Content-Type: text/html" + Http.HTTP_LS;
+
+    public static final String HTTP_DEFAULT_OK = HTTP_DEFAULT_TEMPLATE + Http.HTTP_LS;
+
+
     /**
      * Prepare HTTP request before sending on server.
      *
@@ -17,15 +25,13 @@ public class Http {
      * @return - full complete http request in {@code String} format.
      */
     public static String makeRequest(String httpStatus, String serverCommand, String bodyContent) {
-        return httpStatus + "HTTP/1.1 200 OK" + HTTP_LS
-                + "server.Server: job4j/2020-07-12" + HTTP_LS
-                + "Content-Type: text/html" + HTTP_LS
+        return httpStatus + HTTP_DEFAULT_TEMPLATE
                 + "Content-Length: " + bodyContent.length() + HTTP_LS
                 + "body: " + serverCommand + HTTP_LS
                 + bodyContent;
     }
 
-    public static boolean checkResponse(String response) {
+    public static boolean checkHttpResponseOk(String response) {
         return response.split(HTTP_LS)[0].contains("OK");
     }
 }
